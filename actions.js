@@ -1,25 +1,46 @@
-include('ringo/webapp/response');
+var response = require('ringo/webapp/response');
 var fs = require('fs');
-var root = system.args[1] || ".";
 var md = require('ringo/markdown');
 
+var root = fs.absolute(system.args[0] || ".");
 
 exports.index = function (req,path)
 {
-      var html=null;
+    var absolutePath=fs.join(root,path);
 
-      path = fs.absolute(fs.join(root,path));
-      //print(root,path);
-      if(fs.isFile(path))
+      if(fs.isFile(absolutePath))
       {
-          return staticResponse(path);
-      }
-      
-      if(fs.isFile(path+".md"))
-      {
-          html = md.Markdown().process(fs.read(path+".md"));
-          return Response(html);
+          if(fs.extension(absolutePath)==".md")
+          {
+               var html = md.Markdown().process(fs.read(absolutePath));
+                  return response.Response(html);
+          }
+          return response.staticResponse(absolutePath);
       }
 
+      if(fs.isDirectory(absolutePath,path))
+      {
+          return listFiles(absolutePath);
+      }
       throw {notfound:true};
+}
+
+function listFiles(absolutePath,path)
+{
+   var files = fs.list(absolutePath);
+   files = files.map(function(file)
+   {
+        var filePath = fs.join(absolutePath,file)
+        return {
+            name:file,
+            size:fs.size(filePath),
+            lastModified:fs.lastModified(filePath),
+            path:fs.join(path,file)
+        };
+   });
+   
+   return response.skinResponse('skins/index.html', {
+      files: files,
+   });
+
 }

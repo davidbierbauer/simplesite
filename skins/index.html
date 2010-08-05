@@ -1,4 +1,14 @@
 <% extends ./base.html %>
 
 <% subskin content %>
-<% content %>
+<% for file in <% files %> render 'filePost' %>
+
+<% subskin 'filePost' %>
+
+    <div>
+	<p>
+        <% post.lead %>
+        <a href="<%href <%file.path%> %>"> <%file.name%> </a>
+        [<%file.size%> bytes] [<%file.lastModified |dateFormat "dd,MM,yyyy"%>]
+        <p>
+    </div>
