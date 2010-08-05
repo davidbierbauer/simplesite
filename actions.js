@@ -17,7 +17,9 @@ exports.index = function (req,path)
           if(fs.extension(absolutePath)==".md")
           {
                var html = md.Markdown().process(fs.read(absolutePath));
-                  return response.Response(html);
+                  return response.skinResponse('skins/page.html', {
+      content: html,
+   });
           }
           return response.staticResponse(absolutePath);
       }
@@ -34,7 +36,7 @@ exports.index = function (req,path)
 
 function listFiles(absolutePath,uriPath)
 {
-   var files = fs.list(absolutePath);
+   var files = fs.list(absolutePath).sort();
    files = files.map(function(file)
    {
         var filePath = fs.join(absolutePath,file)
@@ -46,8 +48,7 @@ function listFiles(absolutePath,uriPath)
         };
    });
    
-   return response.skinResponse('skins/index.html', {
+   return response.skinResponse('skins/list.html', {
       files: files,
    });
-
 }
