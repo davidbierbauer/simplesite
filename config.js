@@ -1,6 +1,6 @@
-exports.httpConfig = {
-    staticDir: 'static'
-};
+
+//root directory for published content - please adapt
+exports.root = ".";
 
 exports.urls = [
     ['/(.*)', require('actions')],

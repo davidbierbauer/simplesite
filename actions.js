@@ -5,7 +5,7 @@ var fileutils = require('ringo/fileutils');
 var strings = require('ringo/utils/strings');
 var log = require('ringo/logging').getLogger(module.id);
 
-var root = fs.absolute(system.args[0] || ".");
+var root = fs.absolute(require("./config").root);
 var welcomePages = ["index.html","index.md"];
 
 exports.index = function (req,path)
@@ -16,7 +16,7 @@ exports.index = function (req,path)
 	
 	if(isDirectory)
       {
-		for each(name in welcomePages)
+		for each(var name in welcomePages)
 		{
 			if(fs.isFile(fs.join(absolutePath,name)))
 			{
