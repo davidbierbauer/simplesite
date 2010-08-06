@@ -1,4 +1,4 @@
-var response = require('ringo/webapp/response');
+var {skinResponse, staticResponse} = require('ringo/webapp/response');
 var fs = require('fs');
 var md = require('ringo/markdown');
 var fileutils = require('ringo/fileutils');
@@ -38,7 +38,7 @@ exports.index = function (req,path)
           return listFiles(absolutePath, uriPath);
       }
       throw {notfound:true};
-}
+};
 
 function listFiles(absolutePath,uriPath)
 {
@@ -53,8 +53,8 @@ function listFiles(absolutePath,uriPath)
             path:fileutils.resolveUri(uriPath,file)
         };
    });
-   
-   return response.skinResponse('skins/list.html', {
+
+   return skinResponse('./skins/list.html', {
       files: files,
    });
 }
@@ -64,9 +64,9 @@ function serveFile(absolutePath)
     if(fs.extension(absolutePath)==".md")
     {
          var html = md.Markdown().process(fs.read(absolutePath));
-            return response.skinResponse('skins/page.html', {
+            return skinResponse('./skins/page.html', {
 	 content: html,
 	 });
     }
-    return response.staticResponse(absolutePath);
+    return staticResponse(absolutePath);
 }

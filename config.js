@@ -3,7 +3,7 @@
 exports.root = ".";
 
 exports.urls = [
-    ['/(.*)', require('actions')],
+    ['/(.*)', require('./actions')],
     ];
 
 exports.middleware = [
