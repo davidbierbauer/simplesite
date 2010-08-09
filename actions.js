@@ -12,8 +12,8 @@ exports.index = function (req,path)
 {
     var uriPath = fileutils.resolveUri(req.rootPath, path);
     var absolutePath=fs.join(root,path);
-    var isDirectory=fs.isDirectory(absolutePath);
-
+    var isDirectory=fs.isDirectory(absolutePath);	
+	
     if(isDirectory)
     {
         for each(var name in welcomePages)
@@ -45,7 +45,8 @@ function listFiles(absolutePath,uriPath)
     var files = fs.list(absolutePath).sort();
     files = files.map(function(file)
     {
-        var filePath = fs.join(absolutePath,file)
+        var filePath = fs.join(absolutePath,file)	
+
         return {
             name:file,
             size:fs.size(filePath),
@@ -53,6 +54,16 @@ function listFiles(absolutePath,uriPath)
             path:fileutils.resolveUri(uriPath,file)
         };
     });
+
+	files = files.filter(function(file)
+	{
+		if(fileutils.isHidden(file.path))
+		{ 
+//			print('found hidden file: ' + file.path);
+			return false;
+		}
+		return true;
+	});
 
     return skinResponse('./skins/list.html', {
         files: files,
