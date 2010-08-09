@@ -3,6 +3,7 @@ var fs = require('fs');
 var md = require('ringo/markdown');
 var fileutils = require('ringo/fileutils');
 var strings = require('ringo/utils/strings');
+var numbers = require('ringo/utils/numbers');
 var log = require('ringo/logging').getLogger(module.id);
 
 var root = fs.absolute(require("./config").root);
@@ -13,7 +14,6 @@ exports.index = function (req,path)
 {
     var uriPath = fileutils.resolveUri(req.rootPath, path);
     var absolutePath=fs.join(root,path);
-    var isDirectory=fs.isDirectory(absolutePath);	
 
 	if(uriPath=="/")
 	{
@@ -22,7 +22,12 @@ exports.index = function (req,path)
 		parentDir = "/../";	
 	}
 
-    if(isDirectory)
+    if(fs.isFile(absolutePath))
+    {
+        return serveFile(absolutePath);
+    }
+
+    if(fs.isDirectory(absolutePath))
     {
         for each(var name in welcomePages)
         {
@@ -31,15 +36,6 @@ exports.index = function (req,path)
                 return serveFile(fs.join(absolutePath,name));
             }
         }
-    }
-
-    if(fs.isFile(absolutePath))
-    {
-        return serveFile(absolutePath);
-    }
-
-    if(isDirectory)
-    {
         if (!strings.endsWith(uriPath, "/")) {
             throw {redirect: uriPath + "/"};
         }
@@ -53,11 +49,16 @@ function listFiles(absolutePath,uriPath)
     var files = fs.list(absolutePath).sort();
     files = files.map(function(file)
     {
-        var filePath = fs.join(absolutePath,file)	
-
+        var filePath = fs.join(absolutePath,file);
+        var size;
+        if (fs.isDirectory(filePath)) {
+            size = fs.list(filePath).length + " files";
+        } else {
+            size = numbers.format(fs.size(filePath) / 1024) + " kB";
+        }
         return {
             name:file,
-			size:fs.size(filePath)/1024 + "KB",
+			size: size,
             lastModified:fs.lastModified(filePath),
             path:fileutils.resolveUri(uriPath,file)
         };
@@ -71,24 +72,6 @@ function listFiles(absolutePath,uriPath)
 		}
 		return true;
 	});
-	
-//	print("---------------------------");
-	for each(var file in files)
-	{	
-		var filePath = fs.join(absolutePath,file.path);
-		//print("filePath="+filePath);		
-		if(fs.isDirectory(filePath))
-		{
-		//	print("directory");
-			var size = fs.list(filePath).length;
-			if(size>0)
-			{
-				file.size="directory: " + size + " sub elements";
-			} else{
-				file.size="empty directory";			
-			}
-		}
-	}
 
     return skinResponse('./skins/list.html', {
         files: files,
