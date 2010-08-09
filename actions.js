@@ -7,13 +7,21 @@ var log = require('ringo/logging').getLogger(module.id);
 
 var root = fs.absolute(require("./config").root);
 var welcomePages = ["index.html","index.md"];
+var parentDir = "/../";
 
 exports.index = function (req,path)
 {
     var uriPath = fileutils.resolveUri(req.rootPath, path);
     var absolutePath=fs.join(root,path);
     var isDirectory=fs.isDirectory(absolutePath);	
-	
+
+	if(uriPath=="/")
+	{
+		parentDir = "";	
+	}else{
+		parentDir = "/../";	
+	}
+
     if(isDirectory)
     {
         for each(var name in welcomePages)
@@ -49,7 +57,7 @@ function listFiles(absolutePath,uriPath)
 
         return {
             name:file,
-            size:fs.size(filePath),
+			size:fs.size(filePath)/1024 + "KB",
             lastModified:fs.lastModified(filePath),
             path:fileutils.resolveUri(uriPath,file)
         };
@@ -59,14 +67,34 @@ function listFiles(absolutePath,uriPath)
 	{
 		if(fileutils.isHidden(file.path))
 		{ 
-//			print('found hidden file: ' + file.path);
 			return false;
 		}
 		return true;
 	});
+	
+//	print("---------------------------");
+	for each(var file in files)
+	{	
+		var filePath = fs.join(absolutePath,file.path);
+		//print("filePath="+filePath);		
+		if(fs.isDirectory(filePath))
+		{
+		//	print("directory");
+			var size = fs.list(filePath).length;
+			if(size>0)
+			{
+				file.size="directory: " + size + " sub elements";
+			} else{
+				file.size="empty directory";			
+			}
+		}
+	}
 
     return skinResponse('./skins/list.html', {
         files: files,
+		title: uriPath,
+		parent: parentDir
+		
     });
 }
 

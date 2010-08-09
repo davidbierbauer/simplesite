@@ -1,14 +1,18 @@
 <% extends skins/base.html %>
 
 <% subskin content %>
+
+<h5> <%title%> </h5>
+
+<a href="../"> <%parent%>  </a> 
+
+
 <% for file in <% files %> render 'filePost' %>
 
 <% subskin 'filePost' %>
-
     <div>
-	<p>
-        <% post.lead %>
-        <a href="<%file.path%>"> <%file.name%> </a>
-        [<%file.size%> bytes] [<%file.lastModified |dateFormat "dd,MM,yyyy"%>]
+		<p>
+        <a href="<%file.path%>"> <%file.name%></a>
+         [<%file.size%>] [<%file.lastModified |dateFormat "yyyy-MM-dd"%>]
         <p>
     </div>
