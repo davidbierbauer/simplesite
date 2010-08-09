@@ -15,6 +15,8 @@ exports.index = function (req,path)
     var uriPath = fileutils.resolveUri(req.rootPath, path);
     var absolutePath=fs.join(root,path);
 
+	checkRequest(uriPath);	
+
 	if(uriPath=="/")
 	{
 		parentDir = "";	
@@ -73,11 +75,11 @@ function listFiles(absolutePath,uriPath)
 		return true;
 	});
 
+
     return skinResponse('./skins/list.html', {
         files: files,
 		title: uriPath,
 		parent: parentDir
-		
     });
 }
 
@@ -91,4 +93,27 @@ function serveFile(absolutePath)
         });
     }
     return staticResponse(absolutePath);
+}
+
+function checkRequest(request)
+{
+	var path = request.split('/');	
+	var clean = "";
+	print("request="+request);
+	
+	for(var i=0;i<path.length;i++)
+	{
+		if(path[i]=="")
+		{
+			continue;
+		}
+
+		if(fileutils.isHidden(path[i]))
+		{
+			throw {notfound:true};
+		}
+		else{
+			clean+=path[i];
+		}
+	}
 }
