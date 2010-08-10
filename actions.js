@@ -8,7 +8,6 @@ var log = require('ringo/logging').getLogger(module.id);
 
 var root = fs.absolute(require("./config").root);
 var welcomePages = ["index.html","index.md"];
-var parentDir = "/../";
 
 exports.index = function (req,path)
 {
@@ -16,13 +15,6 @@ exports.index = function (req,path)
     var absolutePath=fs.join(root,path);
 
 	checkRequest(uriPath);	
-
-	if(uriPath=="/")
-	{
-		parentDir = "";	
-	}else{
-		parentDir = "/../";	
-	}
 
     if(fs.isFile(absolutePath))
     {
@@ -68,13 +60,10 @@ function listFiles(absolutePath,uriPath)
 
 	files = files.filter(function(file)
 	{
-		if(fileutils.isHidden(file.path))
-		{ 
-			return false;
-		}
-		return true;
+		return !fileutils.isHidden(file.path);
 	});
-
+	
+	var parentDir = uriPath == "/" ? "":"/../"; 	
 
     return skinResponse('./skins/list.html', {
         files: files,
@@ -97,23 +86,13 @@ function serveFile(absolutePath)
 
 function checkRequest(request)
 {
-	var path = request.split('/');	
-	var clean = "";
-	print("request="+request);
-	
+	var path = request.split('/');
+
 	for(var i=0;i<path.length;i++)
 	{
-		if(path[i]=="")
-		{
-			continue;
-		}
-
-		if(fileutils.isHidden(path[i]))
+		if(path[i]!="" && fileutils.isHidden(path[i]))
 		{
 			throw {notfound:true};
-		}
-		else{
-			clean+=path[i];
 		}
 	}
 }
