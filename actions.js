@@ -60,7 +60,7 @@ function listFiles(absolutePath,uriPath)
 
 	files = files.filter(function(file)
 	{
-		return !fileutils.isHidden(file.path);
+		return !fileutils.isHidden(file.name);
 	});
 	
 	var parentDir = uriPath == "/" ? "":"/../"; 	
