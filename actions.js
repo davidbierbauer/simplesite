@@ -14,7 +14,7 @@ exports.index = function (req,path)
     var uriPath = files.resolveUri(req.rootPath, path);
     var absolutePath=fs.join(root,path);
 
-	checkRequest(uriPath);	
+    checkRequest(uriPath);
 
     if(fs.isFile(absolutePath))
     {
@@ -41,9 +41,9 @@ exports.index = function (req,path)
 function listFiles(absolutePath,uriPath)
 {
     var paths = fs.list(absolutePath).filter(function(file)
-	{
-		return !files.isHidden(file);
-	}).sort().map(function(file)
+    {
+        return !files.isHidden(file);
+    }).sort().map(function(file)
     {
         var filePath = fs.join(absolutePath,file);
         var size;
@@ -54,18 +54,18 @@ function listFiles(absolutePath,uriPath)
         }
         return {
             name:file,
-			size: size,
+            size: size,
             lastModified: fs.lastModified(filePath),
             path: files.resolveUri(uriPath,file)
         };
     });
 
-	var parentDir = uriPath == "/" ? "":"/../"; 	
+    var parentDir = uriPath == "/" ? "":"/../";
 
     return Response.skin(module.resolve('skins/list.html'), {
         files: paths,
-		title: uriPath,
-		parent: parentDir
+        title: uriPath,
+        parent: parentDir
     });
 }
 
@@ -83,13 +83,14 @@ function serveFile(absolutePath)
 
 function checkRequest(request)
 {
-	var path = request.split('/');
+    var path = request.split('/');
 
-	for(var i=0;i<path.length;i++)
-	{
-		if(path[i]!="" && files.isHidden(path[i]))
-		{
-			throw {notfound:true};
-		}
-	}
+    for(var i=0;i<path.length;i++)
+    {
+        if(path[i]!="" && files.isHidden(path[i]))
+        {
+            throw {notfound:true};
+        }
+    }
 }
+
