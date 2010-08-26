@@ -1,7 +1,7 @@
-var {skinResponse, staticResponse} = require('ringo/webapp/response');
+var {Response} = require('ringo/webapp/response');
 var fs = require('fs');
 var md = require('ringo/markdown');
-var fileutils = require('ringo/fileutils');
+var files = require('ringo/utils/files');
 var strings = require('ringo/utils/strings');
 var numbers = require('ringo/utils/numbers');
 var log = require('ringo/logging').getLogger(module.id);
@@ -11,7 +11,7 @@ var welcomePages = ["index.html","index.md"];
 
 exports.index = function (req,path)
 {
-    var uriPath = fileutils.resolveUri(req.rootPath, path);
+    var uriPath = files.resolveUri(req.rootPath, path);
     var absolutePath=fs.join(root,path);
 
 	checkRequest(uriPath);	
@@ -40,8 +40,10 @@ exports.index = function (req,path)
 
 function listFiles(absolutePath,uriPath)
 {
-    var files = fs.list(absolutePath).sort();
-    files = files.map(function(file)
+    var paths = fs.list(absolutePath).filter(function(file)
+	{
+		return !files.isHidden(file);
+	}).sort().map(function(file)
     {
         var filePath = fs.join(absolutePath,file);
         var size;
@@ -53,20 +55,15 @@ function listFiles(absolutePath,uriPath)
         return {
             name:file,
 			size: size,
-            lastModified:fs.lastModified(filePath),
-            path:fileutils.resolveUri(uriPath,file)
+            lastModified: fs.lastModified(filePath),
+            path: files.resolveUri(uriPath,file)
         };
     });
 
-	files = files.filter(function(file)
-	{
-		return !fileutils.isHidden(file.name);
-	});
-	
 	var parentDir = uriPath == "/" ? "":"/../"; 	
 
-    return skinResponse('./skins/list.html', {
-        files: files,
+    return Response.skin(module.resolve('skins/list.html'), {
+        files: paths,
 		title: uriPath,
 		parent: parentDir
     });
@@ -77,11 +74,11 @@ function serveFile(absolutePath)
     if(fs.extension(absolutePath)==".md")
     {
         var html = md.Markdown().process(fs.read(absolutePath));
-        return skinResponse('./skins/page.html', {
+        return Response.skin(module.resolve('skins/page.html'), {
             content: html,
         });
     }
-    return staticResponse(absolutePath);
+    return Response.static(absolutePath);
 }
 
 function checkRequest(request)
@@ -90,7 +87,7 @@ function checkRequest(request)
 
 	for(var i=0;i<path.length;i++)
 	{
-		if(path[i]!="" && fileutils.isHidden(path[i]))
+		if(path[i]!="" && files.isHidden(path[i]))
 		{
 			throw {notfound:true};
 		}
